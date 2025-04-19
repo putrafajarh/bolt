@@ -1,0 +1,23 @@
+definitions:
+  controllers.PingResponse:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /v1/ping:
+    get:
+      description: Responds with a "pong" message to test server availability
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.PingResponse'
+      summary: Ping
+      tags:
+      - Health
+swagger: "2.0"

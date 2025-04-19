@@ -5,6 +5,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
+	"github.com/putrafajarh/bolt/controllers"
 	"github.com/putrafajarh/bolt/middlewares"
 )
 
@@ -18,18 +19,18 @@ func main() {
 	// Register Middlewares
 	middlewares.SetupCORS(app)
 	middlewares.SetupRequestID(app)
+	middlewares.SetupCompress(app)
+	middlewares.SetupSwagger(app)
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	v1 := app.Group("/v1")
+
+	v1.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "Hello, World!",
 		})
 	})
 
-	app.Get("/ping", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "pong",
-		})
-	})
+	v1.Get("/ping", controllers.HandlePing)
 
 	log.Fatal(app.Listen(":3000"))
 }
