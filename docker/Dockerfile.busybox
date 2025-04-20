@@ -12,7 +12,7 @@ COPY . .
 
 # Toggle CGO based on your app requirement. CGO_ENABLED=1 for enabling CGO
 RUN --mount=type=cache,target=/go/pkg/mod \
-    CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/bolt *.go
+    CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/bolt ./cmd/app
 
 FROM busybox:1.37
 LABEL MAINTAINER="Author <putrafajarh@gmail.com>"

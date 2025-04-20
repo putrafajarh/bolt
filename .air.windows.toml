@@ -7,15 +7,15 @@ tmp_dir = "tmp"
 
 [build]
 # Just plain old shell command. You could use `make` as well.
-cmd = "go build -o ./bolt.exe ./main.go"
+cmd = "go build -o ./tmp/bolt.exe ./cmd/app"
 # Binary file yields from `cmd`.
 bin = "bolt.exe"
 # Customize binary.
-full_bin = "bolt.exe"
+full_bin = "./tmp/bolt.exe"
 # Watch these filename extensions.
 include_ext = ["go", "tpl", "tmpl", "html", "mustache", "hbs", "pug"]
 # Ignore these filename extensions or directories.
-exclude_dir = ["tmp", "vendor", "node_modules"]
+exclude_dir = ["tmp", "vendor", "node_modules", "scripts"]
 # Watch these directories if you specified.
 include_dir = []
 # Exclude files.

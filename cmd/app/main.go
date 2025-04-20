@@ -6,7 +6,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/putrafajarh/bolt/controllers"
-	"github.com/putrafajarh/bolt/middlewares"
+	"github.com/putrafajarh/bolt/middleware"
 )
 
 func main() {
@@ -17,10 +17,10 @@ func main() {
 	})
 
 	// Register Middlewares
-	middlewares.SetupCORS(app)
-	middlewares.SetupRequestID(app)
-	middlewares.SetupCompress(app)
-	middlewares.SetupSwagger(app)
+	middleware.SetupCORS(app)
+	middleware.SetupRequestID(app)
+	middleware.SetupCompress(app)
+	middleware.SetupSwagger(app)
 
 	v1 := app.Group("/v1")
 

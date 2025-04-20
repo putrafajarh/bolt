@@ -15,7 +15,7 @@ COPY . .
 # Otherwise, it will fail with errors. If your package uses CGO find alternative
 # packages that are pure Go or use a different base image.
 RUN --mount=type=cache,target=/go/pkg/mod \
-    CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/bolt *.go
+    CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/bolt ./cmd/app
 
 FROM gcr.io/distroless/static-debian12:nonroot
 LABEL MAINTAINER="Author <putrafajarh@gmail.com>"
