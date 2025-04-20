@@ -26,7 +26,7 @@ docker build -f Dockerfile.debian -t myimage:debian ../
 
 ### Build Distroless Image
 ```bash
-docker build -f Dockerfile.debian -t myimage:debian ../
+docker build -f Dockerfile.distroless -t myimage:debian ../
 ```
 
 ## Notes
