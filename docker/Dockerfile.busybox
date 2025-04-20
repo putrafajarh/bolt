@@ -1,0 +1,36 @@
+FROM golang:1.23 AS builder
+
+WORKDIR /app
+
+# Set up build cache for go modules
+COPY go.mod go.sum ./
+ENV GOCACHE=/root/.cache/go-build
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
+
+# Copy the rest of the application code
+COPY . .
+
+# Toggle CGO based on your app requirement. CGO_ENABLED=1 for enabling CGO
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/bolt *.go
+
+FROM busybox:1.37
+LABEL MAINTAINER="Author <putrafajarh@gmail.com>"
+
+# Add new user 'appuser'. App should be run without root privileges as a security measure
+RUN adduser --home "/appuser" --disabled-password appuser \
+    --gecos "appuser,-,-,-"
+USER appuser
+
+COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=builder /app /home/appuser/app
+
+WORKDIR /home/appuser/app
+
+# Since running as a non-root user, port bindings < 1024 are not possible
+# 8000 for HTTP; 8443 for HTTPS;
+EXPOSE 8000
+EXPOSE 8443
+
+CMD ["./bolt"]
