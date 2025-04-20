@@ -1,0 +1,30 @@
+FROM golang:1.23-alpine3.21 AS builder
+
+WORKDIR /app
+
+# Set up build cache for go modules
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+# Copy the rest of the application code
+COPY . .
+
+# Since Distroless lacks a libc (or other system libraries),
+# your Go binary must be statically linked (CGO_ENABLED=0).
+# Otherwise, it will fail with errors. If your package uses CGO find alternative
+# packages that are pure Go or use a different base image.
+RUN --mount=type=cache,target=/go/pkg/mod \
+    CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/bolt *.go
+
+FROM gcr.io/distroless/static-debian12:nonroot
+LABEL MAINTAINER="Author <putrafajarh@gmail.com>"
+
+# Copy the built binary to the distroless image
+COPY --from=builder /app /home/nonroot
+
+# Since running as a non-root user, port bindings < 1024 are not possible
+# 8000 for HTTP; 8443 for HTTPS;
+EXPOSE 8000 8443
+
+CMD ["./bolt"]

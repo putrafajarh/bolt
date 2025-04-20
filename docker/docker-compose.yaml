@@ -5,7 +5,8 @@ services:
     image: myimage:latest
     build:
       context: ../
-      dockerfile: Dockerfile.alpine
+      dockerfile: Dockerfile.distroless
+      # dockerfile: Dockerfile.alpine
       # dockerfile: Dockerfile.busybox
       # dockerfile: Dockerfile.debian
     ports:
