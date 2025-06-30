@@ -1,88 +1,81 @@
-linters-settings:
-  depguard:
-    rules:
-      main:
-        deny:
-          - pkg: encoding/json
-            desc: use "github.com/bytedance/sonic" instead
-          - pkg: io/ioutil
-            desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
-          - pkg: "github.com/stretchr/testify/assert"
-            desc: Use "gotest.tools/v3/assert" instead
-          - pkg: "github.com/stretchr/testify/require"
-            desc: Use "gotest.tools/v3/assert" instead
-          - pkg: "github.com/stretchr/testify/suite"
-            desc: Do not use
-          - pkg: "github.com/tonistiigi/fsutil"
-            desc: The fsutil module does not have a stable API, so we should not have a direct dependency unless necessary.
-  govet:
-    shadow: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-  gocyclo:
-    min-complexity: 50
-  maligned:
-    suggest-new: true
-  dupl:
-    threshold: 100
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  misspell:
-    locale: US
-  revive:
-    confidence: 0.8
-  lll:
-    line-length: 160
-    # tab width in spaces. Default to 1.
-    tab-width: 1
-  funlen:
-    lines: 150
-    statements: 80
-
+version: "2"
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
+  default: none
   enable:
-    - copyloopvar   # Detects places where loop variables are copied.
-    - wastedassign  # Detects wasted assignment statements.
+    - copyloopvar
     - depguard
     - errcheck
     - funlen
     - goconst
     - gocyclo
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
     - misspell
     - revive
     - staticcheck
-    - typecheck
-    - unconvert     # Detects unnecessary type conversions.
+    - unconvert
     - unparam
     - unused
-
-  # don't enable:
-  # - gochecknoglobals
-  # - gocognit
-  # - godox
-  # - maligned
-  # - prealloc
-
-run:
-  skip-dirs:
-    # - test/testdata_etc
-  exclude-files:
-    - ".*_test\\.go$"
-
-issues:
-  exclude-rules:
-  #
+    - wastedassign
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: encoding/json
+              desc: use "github.com/bytedance/sonic" instead
+            - pkg: io/ioutil
+              desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
+            - pkg: github.com/stretchr/testify/assert
+              desc: Use "gotest.tools/v3/assert" instead
+            - pkg: github.com/stretchr/testify/require
+              desc: Use "gotest.tools/v3/assert" instead
+            - pkg: github.com/stretchr/testify/suite
+              desc: Do not use
+            - pkg: github.com/tonistiigi/fsutil
+              desc: The fsutil module does not have a stable API, so we should not have a direct dependency unless necessary.
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 150
+      statements: 80
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+    gocyclo:
+      min-complexity: 50
+    govet:
+      settings:
+        printf:
+          funcs:
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+    lll:
+      line-length: 160
+      tab-width: 1
+    misspell:
+      locale: US
+    revive:
+      confidence: 0.8
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
