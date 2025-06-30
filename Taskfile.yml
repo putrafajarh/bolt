@@ -1,0 +1,57 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    desc: List all available commands
+    silent: true
+    cmds:
+      - task -a
+
+  dev:
+    desc: Start development server with air (hot reload)
+    deps:
+      - air
+    cmds:
+      - air -c .air.linux.toml
+
+  lint:
+    desc: Run golangci-lint with predefined configuration
+    deps:
+      - golangci-lint
+    cmds:
+      - golangci-lint run -c .golangci.yaml ./...
+
+  docker:clean:
+    desc: Remove unused docker images
+    preconditions:
+      - sh: docker info > /dev/null 2>&1
+        msg: "Docker is not running or not installed."
+    cmds:
+      - docker image prune -f
+
+  air:
+    internal: true
+    silent: true
+    status:
+      - ! command -v air &> /dev/null
+    cmds:
+      - echo "Installing air with Homebrew"
+      - brew install air
+    preconditions:
+      - ! command -v brew &> /dev/null
+
+  golangci-lint:
+    internal: true
+    silent: true
+    status:
+      - ! command -v golangci-lint &> /dev/null
+    cmds:
+      - echo "Installing golangci-lint with Homebrew"
+      - brew install golangci-lint
+    preconditions:
+      - ! command -v brew &> /dev/null

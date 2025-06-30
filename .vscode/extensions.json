@@ -2,6 +2,8 @@
     "recommendations": [
         "golang.go",
         "docker.docker",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "task.vscode-task",
+        "redhat.vscode-yaml"
     ]
 }
