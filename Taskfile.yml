@@ -2,8 +2,8 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, World!
+dotenv:
+  - .env
 
 tasks:
   default:
@@ -19,6 +19,11 @@ tasks:
     cmds:
       - air -c .air.linux.toml
 
+  build:
+    desc: Build the application
+    cmds:
+      - go build ./cmd/app
+
   lint:
     desc: Run golangci-lint with predefined configuration
     deps:
@@ -33,6 +38,14 @@ tasks:
         msg: "Docker is not running or not installed."
     cmds:
       - docker image prune -f
+
+  docker:build:
+    desc: Build docker image
+    preconditions:
+      - sh: docker info > /dev/null 2>&1
+        msg: "Docker is not running or not installed."
+    cmds:
+      - docker build -f docker/Dockerfile.${DOCKER_BASE_IMAGE:-distroless} .
 
   air:
     internal: true
