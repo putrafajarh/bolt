@@ -45,7 +45,7 @@ tasks:
       - sh: docker info > /dev/null 2>&1
         msg: "Docker is not running or not installed."
     cmds:
-      - docker build -f docker/Dockerfile.${DOCKER_BASE_IMAGE:-distroless} .
+      - docker build -f docker/Dockerfile.${DOCKER_BASE_IMAGE:-distroless} -t ${APP_NAME:-bolt}:${DOCKER_BASE_IMAGE:-distroless} .
 
   air:
     internal: true

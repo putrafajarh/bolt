@@ -1,0 +1,24 @@
+FROM golang:1.24-alpine3.22 AS builder
+
+WORKDIR /app
+
+# Set up build cache for go modules
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+# Copy the rest of the application code
+COPY . .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/bolt ./cmd/app
+
+FROM scratch
+LABEL MAINTAINER="Author <putrafajarh@gmail.com>"
+
+COPY --from=builder /app/bolt /app/bolt
+
+EXPOSE 8000
+EXPOSE 8443
+
+CMD ["./bolt"]
