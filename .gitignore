@@ -20,5 +20,8 @@ tmp/
 
 .env
 
+# Taskfile
+.task 
+
 # Output of the go build
 app

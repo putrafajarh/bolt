@@ -10,14 +10,15 @@ import (
 )
 
 var (
-	HeaderXRequestID = http.CanonicalHeaderKey(fiber.HeaderXRequestID)
+	HeaderXRequestID    = http.CanonicalHeaderKey(fiber.HeaderXRequestID)
+	RequestIDContextKey = "requestid"
 )
 
 // SetupRequestID sets up the Request ID middleware for the Fiber app
 func SetupRequestID(app *fiber.App) {
 	app.Use(requestid.New(requestid.Config{
 		Header:     HeaderXRequestID,
-		ContextKey: "requestid",
+		ContextKey: RequestIDContextKey,
 		Generator:  requestidGenerator,
 	}))
 }
@@ -28,4 +29,8 @@ func requestidGenerator() string {
 		return utils.UUID()
 	}
 	return rid.String()
+}
+
+func GetRequestID(c *fiber.Ctx) string {
+	return c.Locals(RequestIDContextKey).(string)
 }

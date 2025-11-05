@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 	"time"
+
+	"github.com/putrafajarh/bolt/pkg/shutdown"
 
 	"github.com/gofiber/contrib/circuitbreaker"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/putrafajarh/bolt/controllers"
 	"github.com/putrafajarh/bolt/internal/infra"
 	"github.com/putrafajarh/bolt/internal/middlewares"
-	"github.com/rs/zerolog"
+	runtimemetrics "go.opentelemetry.io/contrib/instrumentation/runtime"
 
 	_ "github.com/joho/godotenv/autoload"
 
@@ -24,6 +25,12 @@ import (
 func main() {
 
 	logger := infra.NewLogger()
+
+	appName := os.Getenv("APP_NAME")
+	tp, mp, err := infra.SetupOtel(appName)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to setup otel")
+	}
 
 	db, err := infra.NewDB(logger)
 	if err != nil {
@@ -45,7 +52,8 @@ func main() {
 		}
 	}()
 
-	gracefulShutdown(http, logger, 30*time.Second,
+	adapter := shutdown.FiberShutdownAdapter{App: http}
+	shutdown.Graceful(&adapter, logger, 30*time.Second,
 		// Cleanup db connection
 		func(ctx context.Context) error {
 			sqlDB, err := db.DB()
@@ -69,10 +77,25 @@ func main() {
 			logger.Info().Msg("redis connection closed")
 			return nil
 		},
+		// Shutdown TraceProvider
+		func(ctx context.Context) error {
+			return tp.Shutdown(ctx)
+		},
+		// Shutdown MeterProvider
+		func(ctx context.Context) error {
+			return mp.Shutdown(ctx)
+		},
 	)
 }
 
 func registerRoutes(app *fiber.App, db *gorm.DB) {
+	if err := runtimemetrics.Start(); err != nil {
+		panic(err)
+	}
+
+	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
+
+	middlewares.SetupOtelFiber(app)
 	cb := circuitbreaker.New(circuitbreaker.Config{
 		FailureThreshold: 3,
 		Timeout:          10 * time.Second,
@@ -92,37 +115,4 @@ func registerRoutes(app *fiber.App, db *gorm.DB) {
 		middlewares.WithTrx(db),
 		controllers.HandlePing,
 	)
-}
-
-func gracefulShutdown(app *fiber.App, logger *zerolog.Logger, timeout time.Duration, ops ...func(context.Context) error) {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-
-	// Block until a signal is received
-	<-quit
-	logger.Info().Msg("shutting down server")
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	if err := app.ShutdownWithContext(ctx); err != nil {
-		logger.Error().Err(err).Msg("failed to shutdown http server gracefully")
-	}
-
-	var wg sync.WaitGroup
-	for _, op := range ops {
-		if op == nil {
-			continue
-		}
-		wg.Add(1)
-		go func(op func(context.Context) error) {
-			defer wg.Done()
-			if err := op(ctx); err != nil {
-				logger.Error().Err(err).Msg("failed to shutdown gracefully")
-			}
-		}(op)
-	}
-	wg.Wait()
-
-	logger.Info().Msg("server shutdown gracefully stopped")
 }

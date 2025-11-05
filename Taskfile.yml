@@ -12,6 +12,13 @@ tasks:
     cmds:
       - task -a
 
+  proto:generate:
+    desc: Generate protobuf files
+    sources:
+      - '**/*.proto'
+    cmds:
+      - protoc --proto_path=./proto --go_out=internal/pb --go-grpc_out=internal/pb ./proto/*.proto
+
   dev:
     desc: Start development server with air (hot reload)
     deps:

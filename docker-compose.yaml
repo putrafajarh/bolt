@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -22,7 +20,7 @@ services:
       - redis
 
   db:
-    image: postgres:${DOCKER_POSTGRES_VERSION}
+    image: postgres:${DOCKER_POSTGRES_VERSION:-18-alpine}
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -34,11 +32,25 @@ services:
       - db_data:/var/lib/postgresql/data
 
   redis:
-    image: redis:${DOCKER_REDIS_VERSION}
+    image: redis:${DOCKER_REDIS_VERSION:-8-alpine}
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
+
+  jaeger:
+    image: jaegertracing/jaeger:${DOCKER_JAEGER_VERSION:-latest}
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - LOG_LEVEL=debug
+
+  prometheus:
+    image: prom/prometheus:${DOCKER_PROMETHEUS_VERSION:-latest}
+    ports:
+      - "9090:9090"
 
 volumes:
   db_data:

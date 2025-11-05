@@ -1,0 +1,7 @@
+syntax = "proto3";
+package ping;
+option go_package = "./ping";
+
+message PingRequest {
+  string message = 1;
+}
