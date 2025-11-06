@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/putrafajarh/bolt/controllers"
+	ctrl "github.com/putrafajarh/bolt/internal/controller"
 	"github.com/putrafajarh/bolt/internal/infra"
 	"github.com/putrafajarh/bolt/internal/middlewares"
 	runtimemetrics "go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -40,6 +41,11 @@ func main() {
 	rd, err := infra.NewRedis(logger)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed create new redis connection")
+	}
+
+	fs, err := infra.NewFirestoreClient()
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed create new firestore connection")
 	}
 
 	http := infra.NewHttpServer(logger)
@@ -75,6 +81,15 @@ func main() {
 				return err
 			}
 			logger.Info().Msg("redis connection closed")
+			return nil
+		},
+		// Cleanup firestore connection
+		func(ctx context.Context) error {
+			if err := fs.Close(); err != nil {
+				logger.Error().Err(err).Msg("failed to close firestore connection")
+				return err
+			}
+			logger.Info().Msg("firestore connection closed")
 			return nil
 		},
 		// Shutdown TraceProvider
@@ -115,4 +130,8 @@ func registerRoutes(app *fiber.App, db *gorm.DB) {
 		middlewares.WithTrx(db),
 		controllers.HandlePing,
 	)
+
+	jira := v1.Group("/jira")
+	jira.Get("/me", ctrl.Me)
+	jira.Get("/issue", ctrl.GetIssue)
 }

@@ -22,6 +22,7 @@ tmp/
 
 # Taskfile
 .task 
+dina-dev-host-project.json
 
 # Output of the go build
 app
