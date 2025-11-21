@@ -15,7 +15,7 @@ const (
 
 var skipMethods = map[string]struct{}{
 	fiber.MethodOptions: {},
-	fiber.MethodGet:     {},
+	// fiber.MethodGet:     {},
 	fiber.MethodConnect: {},
 	fiber.MethodHead:    {},
 }

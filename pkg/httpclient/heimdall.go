@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"maps"
 	"net/http"
@@ -29,6 +30,9 @@ func NewHeimdall(config HeimdallConfig) *Heimdall {
 	if config.OtelEnabled {
 		httpClient.Transport = otelhttp.NewTransport(
 			http.DefaultTransport,
+			otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+				return fmt.Sprintf("%s %s", r.Method, r.URL.Path)
+			}),
 		)
 	}
 

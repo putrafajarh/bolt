@@ -32,7 +32,8 @@ func fiberErrorHandler(c *fiber.Ctx, err error) error {
 
 	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	return c.Status(code).JSON(fiber.Map{
-		"error": err.Error(),
+		"success": false,
+		"error":   err.Error(),
 	})
 }
 

@@ -6,13 +6,17 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/putrafajarh/bolt/pkg/shutdown"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/gofiber/contrib/circuitbreaker"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/putrafajarh/bolt/controllers"
+	"github.com/putrafajarh/bolt/internal/consumer"
 	ctrl "github.com/putrafajarh/bolt/internal/controller"
 	"github.com/putrafajarh/bolt/internal/infra"
 	"github.com/putrafajarh/bolt/internal/middlewares"
@@ -131,7 +135,16 @@ func registerRoutes(app *fiber.App, db *gorm.DB) {
 		controllers.HandlePing,
 	)
 
-	jira := v1.Group("/jira")
+	jira := v1.Group("/jira", middlewares.WithTrx(db))
 	jira.Get("/me", ctrl.Me)
 	jira.Get("/issue", ctrl.GetIssue)
+}
+
+// Put all consumers here
+func runConsumers(pubsubClient *pubsub.Client, firestoreClient *firestore.Client, db *gorm.DB) {
+	var g errgroup.Group
+	g.Go(func() error {
+		return consumer.DailySyncIssues(pubsubClient, firestoreClient, db)
+	})
+	g.Wait()
 }

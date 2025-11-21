@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	repo "github.com/putrafajarh/bolt/internal/repository/postgres"
 	"github.com/putrafajarh/bolt/pkg/gormlogger"
 	"github.com/rs/zerolog"
 	"gorm.io/driver/postgres"
@@ -30,6 +31,8 @@ func NewDB(logger *zerolog.Logger) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	db.AutoMigrate(&repo.User{}, &repo.Project{}, &repo.Issue{})
 
 	sqlDB, err := db.DB()
 	if err != nil {
